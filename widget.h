@@ -28,17 +28,17 @@ public:
     int xRot, xAcc, xNext, xKey; //配置信息
 
     int dispT[5][5]; //在小窗口展示的下一个方块，形状信息
-    int dispC[5][5]; //在小窗口展示的下一个方块，颜色信息
+    QColor dispC[5][5]; //在小窗口展示的下一个方块，颜色信息
     int medT[5][5]; //中转存储形状信息，0为空，1为满
-    int medC[5][5]; //中转存储颜色信息
+    QColor medC[5][5]; //中转存储颜色信息
     int anT[5][5]; //下一个方块形状，0为空，1为满
-    int anC[5][5]; //下一个方块颜色
+    QColor anC[5][5]; //下一个方块颜色
     QVector<int> exaT(); //确认过边界的方块形状，0为空，1为满
-    QVector<int> exaC(); //确认过边界的方块颜色
+    QVector<QColor> exaC(); //确认过边界的方块颜色
     int maskT[11][21]; //蒙版：正在移动的方块形状信息，0为空，1为满
-    int maskC[11][21]; //蒙版：正在移动的方块颜色信息
+    QColor maskC[11][21]; //蒙版：正在移动的方块颜色信息
     int gridT[11][21]; //主界面方格形状
-    int gridC[11][21]; //主界面方格颜色
+    QColor gridC[11][21]; //主界面方格颜色
 
     int LoLeX, LoLeY; //确认过边界的方块，左下角的方格在gridT中的坐标
     int exaX, exaY; //方块裁去空白后的尺寸
@@ -48,6 +48,9 @@ public:
 
 public slots:
     void showSettings();
+    void TimerImage_Timer();
+    void paintEvent(QPaintEvent*);
+
 
 private:
     Ui::Widget *ui;
@@ -63,8 +66,10 @@ private:
     int historyScore; //历史最高分
     int nowScore; //当前得分
 
-    void TimerImage_Timer(int intvl);
-    void paintEvent(QPaintEvent*);
+    QColor RndColor();
+    void NextColor(int sqrNo);
+    void NextShape(int sqrNo);
+    void RndClockwiseTurn();
 };
 
 #endif // WIDGET_H
