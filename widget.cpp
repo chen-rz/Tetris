@@ -21,11 +21,13 @@ Widget::Widget(QWidget *parent) :
             medC[ii][ij]=QColor(255,255,0);
             anT[ii][ij]=0;
             anC[ii][ij]=QColor(255,255,0);
+            exaT[ii][ij]=0;
+            exaC[ii][ij]=QColor(255,255,0);
         }
     }
     for(int ii=0;ii<11;ii++){
         for(int ij=0;ij<21;ij++){
-            maskT[ii][ij]=0;
+            maskT[ii][ij]=1;
             maskC[ii][ij]=QColor(255,255,0);
             gridT[ii][ij]=0;
             gridC[ii][ij]=QColor(255,255,0);
@@ -52,7 +54,7 @@ void Widget::showSettings(){
 }
 
 void Widget::TimerImage_Timer(){
-    ui->txtspeed->setText(QString::number((float)1000/50));
+    ui->txtspeed->setText(QString::number((float)1000/50/20));
     this->repaint();
 }
 
@@ -200,6 +202,135 @@ void Widget::RndClockwiseTurn(){
         }
         haveTurnedTime ++;
     }while(haveTurnedTime < turnTimes);
+}
+
+//释放展示窗中的方块，准备裁剪边界
+void Widget::DispToAn(){
+    for(int x=1;x<=4;x++){
+        for(int y=1;y<=4;y++){
+            anT[x][y] = dispT[x][y];
+            anC[x][y] = dispC[x][y];
+        }
+    }
+}
+
+//确认方块的边界
+void Widget::ConfirmEdge(){
+    int upBlank, downBlank, leftBlank, rightBlank, ceX, ceY;
+
+    //按行正向扫描，记录上方有几行空白
+    ceY = 1;
+    while(anT[1][ceY]==0 && anT[2][ceY]==0 && anT[3][ceY]==0 && anT[4][ceY]==0){
+        upBlank ++;
+        ceY ++;
+        if(ceY == 5) break;
+    }
+
+    //按行反向扫描，记录下方有几行空白
+    ceY = 4;
+    while(anT[1][ceY]==0 && anT[2][ceY]==0 && anT[3][ceY]==0 && anT[4][ceY]==0){
+        downBlank ++;
+        ceY --;
+        if(ceY == 0) break;
+    }
+
+    //按列正向扫描，记录左方有几行空白
+    ceX = 1;
+    while(anT[ceX][1]==0 && anT[ceX][2]==0 && anT[ceX][3]==0 && anT[ceX][4]==0){
+        leftBlank ++;
+        ceX ++;
+        if(ceX == 5) break;
+    }
+
+    //按列反向扫描，记录右方有几行空白
+    ceX = 4;
+    while(anT[ceX][1]==0 && anT[ceX][2]==0 && anT[ceX][3]==0 && anT[ceX][4]==0){
+        rightBlank ++;
+        ceX --;
+        if(ceX == 0) break;
+    }
+
+    //实际尺寸
+    exaX = 4 - leftBlank - rightBlank;
+    exaY = 4 - upBlank - downBlank;
+
+    //裁去空白
+    for(int x=1;x<=exaX;x++){
+        for(int y=1;y<=exaY;y++){
+            exaT[x][y] = anT[leftBlank + x][upBlank + y];
+            exaC[x][y] = anC[leftBlank + x][upBlank + y];
+        }
+    }
+
+}
+
+//随机生成方块下落的列坐标
+int Widget::GetStartColumn(int SqrWidth){
+    qsrand(time(NULL));
+    return (qrand() % (11 - SqrWidth)) + 1;
+    //以11减去实际宽度，防止出界
+}
+
+//获取下落位置所在的列
+void Widget::GetLOLEX(){
+    bool isBlocked = false;
+    do{
+        LoLeX = GetStartColumn(exaX);
+        for(int x = LoLeX;x <= LoLeX+exaX-1;x ++){
+            for(int y = 1;y <= exaY;y ++){
+                //向当前堆积高度较低的位置投放新方块，防止“落地成盒”
+                if(gridT[x][y] + exaT[x - LoLeX + 1][y] == 2){
+                    isBlocked = true;
+                    break;
+                }
+            }
+        }
+    }while(isBlocked);
+}
+
+//装入蒙版
+void Widget::HereComesMask(){
+    for(int x=1;x<=10;x++){
+        for(int y=1;y<=20;y++){
+            maskT[x][y] = 0; //先清空
+        }
+    }
+    //完整地展示在画面顶端
+    for(int x = LoLeX;x <= LoLeX+exaX-1;x ++){
+        for(int y=1;y<=exaY;y++){
+            maskT[x][y]=exaT[x-LoLeX+1][y];
+            maskC[x][y]=exaC[x-LoLeX+1][y];
+        }
+    }
+    LoLeY = exaY;
+}
+
+//下落一格
+void Widget::Drop(){
+    LoLeY ++;
+    //将蒙版上的内容整体下移一行
+    for(int x=1;x<=10;x++){
+        for(int y=20;y>=2;y--){
+            maskT[x][y] = maskT[x][y-1];
+            maskC[x][y] = maskC[x][y-1];
+        }
+        maskT[x][1] = 0;
+    }
+}
+
+//判断能否继续下落
+bool Widget::ifSink(){
+    if(LoLeY==20) return true; //已到达最后一行
+
+    //蒙版下落一格，每一行是否遇到障碍
+    for(int x = LoLeX;x <= LoLeX + exaX - 1;x++){
+        for(int y = LoLeY - exaY + 1;y < LoLeY;y++){
+            if(gridT[x][y+1]+maskT[x][y]==2)
+                return true;
+        }
+    }
+
+    return false;
 }
 
 Widget::~Widget()

@@ -33,8 +33,8 @@ public:
     QColor medC[5][5]; //中转存储颜色信息
     int anT[5][5]; //下一个方块形状，0为空，1为满
     QColor anC[5][5]; //下一个方块颜色
-    QVector<int> exaT(); //确认过边界的方块形状，0为空，1为满
-    QVector<QColor> exaC(); //确认过边界的方块颜色
+    int exaT[5][5]; //确认过边界的方块形状，0为空，1为满
+    QColor exaC[5][5]; //确认过边界的方块颜色
     int maskT[11][21]; //蒙版：正在移动的方块形状信息，0为空，1为满
     QColor maskC[11][21]; //蒙版：正在移动的方块颜色信息
     int gridT[11][21]; //主界面方格形状
@@ -70,6 +70,13 @@ private:
     void NextColor(int sqrNo);
     void NextShape(int sqrNo);
     void RndClockwiseTurn();
+    void DispToAn();
+    void ConfirmEdge();
+    int GetStartColumn(int SqrWidth);
+    void GetLOLEX();
+    void HereComesMask();
+    void Drop();
+    bool ifSink();
 };
 
 #endif // WIDGET_H
