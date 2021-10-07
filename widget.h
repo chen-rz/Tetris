@@ -11,7 +11,6 @@
 #define Tsqr 7
 
 #include <QWidget>
-#include <QVector>
 #include "settings.h"
 
 namespace Ui {
@@ -24,8 +23,6 @@ class Widget : public QWidget{
 public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
-
-    int xRot, xAcc, xNext, xKey; //配置信息
 
     int dispT[5][5]; //在小窗口展示的下一个方块，形状信息
     QColor dispC[5][5]; //在小窗口展示的下一个方块，颜色信息
@@ -55,6 +52,10 @@ public slots:
 private:
     Ui::Widget *ui;
     Settings *stui;
+    QTimer* Timer0;
+    QTimer* TimerImage;
+
+    int xRot, xAcc, xNext, xKey; //配置信息
 
     bool ifStart; //运行或暂停
     bool ifFast; //是否处于加速下落状态

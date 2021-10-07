@@ -16,11 +16,13 @@ public:
     ~Settings();
 
 public slots:
-    void ok();
-    void cancel();
+    void ok_click();
+    void cancel_click();
 
 private:
     Ui::Settings *ui;
+
+    int xRot, xAcc, xNext, xKey; //配置信息
 };
 
 #endif // SETTINGS_H

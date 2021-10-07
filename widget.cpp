@@ -1,6 +1,5 @@
 #include "widget.h"
 #include "ui_widget.h"
-#include "settings.h"
 
 #include <iostream>
 #include <ctime>
@@ -50,7 +49,7 @@ Widget::Widget(QWidget *parent) :
     QTextStream rotIn(&rotFile);
     rotIn >> xRot;
     rotFile.close();
-    std::cout<<"xRot = "<<xRot<<'\n';
+//    std::cout<<"xRot = "<<xRot<<'\n';
 
     //加速下落时的速度
     QFile accFile("../Tetris/config/acceleration.txt");
@@ -58,7 +57,7 @@ Widget::Widget(QWidget *parent) :
     QTextStream accIn(&accFile);
     accIn >> xAcc;
     accFile.close();
-    std::cout<<"xAcc = "<<xAcc<<'\n';
+//    std::cout<<"xAcc = "<<xAcc<<'\n';
 
     //显示即将出现的方块
     QFile upcFile("../Tetris/config/upcoming.txt");
@@ -66,7 +65,7 @@ Widget::Widget(QWidget *parent) :
     QTextStream upcIn(&upcFile);
     upcIn >> xNext;
     upcFile.close();
-    std::cout<<"xNext = "<<xNext<<'\n';
+//    std::cout<<"xNext = "<<xNext<<'\n';
 
     //按键组合
     QFile keyFile("../Tetris/config/keysettings.txt");
@@ -74,7 +73,7 @@ Widget::Widget(QWidget *parent) :
     QTextStream keyIn(&keyFile);
     keyIn >> xKey;
     keyFile.close();
-    std::cout<<"xKey = "<<xKey<<'\n';
+//    std::cout<<"xKey = "<<xKey<<'\n';
 
     //显示历史最高分：
     QFile bestFile("../Tetris/config/best_in_history.txt");
@@ -90,11 +89,11 @@ Widget::Widget(QWidget *parent) :
 
 
 
-    QTimer* Timer0=new QTimer(this);
+    Timer0=new QTimer(this);
     Timer0->start(1000);
 
 
-    QTimer* TimerImage=new QTimer(this);
+    TimerImage=new QTimer(this);
     TimerImage->start(50);
     connect(TimerImage,&QTimer::timeout,this,&Widget::TimerImage_Timer);
 
@@ -104,6 +103,11 @@ Widget::Widget(QWidget *parent) :
 }
 
 void Widget::showSettings(){
+    //自动暂停游戏
+    ifStart = false;
+    Timer0->stop();
+    ui->cmdstart->setText("开始");
+
     stui = new Settings();
     stui->setModal(true);
     stui->show();
@@ -594,5 +598,7 @@ void Widget::EliminateRow(){
 
 Widget::~Widget()
 {
+    delete Timer0;
+    delete TimerImage;
     delete ui;
 }
