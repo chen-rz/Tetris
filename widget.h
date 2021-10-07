@@ -77,6 +77,13 @@ private:
     void HereComesMask();
     void Drop();
     bool ifSink();
+    void Terminus();
+    bool IfGameOver();
+    void LeftMove();
+    void RightMove();
+    void SingleClockwise();
+    void SingleCounter();
+    void EliminateRow();
 };
 
 #endif // WIDGET_H

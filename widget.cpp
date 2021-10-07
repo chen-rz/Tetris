@@ -27,7 +27,7 @@ Widget::Widget(QWidget *parent) :
     }
     for(int ii=0;ii<11;ii++){
         for(int ij=0;ij<21;ij++){
-            maskT[ii][ij]=1;
+            maskT[ii][ij]=0;
             maskC[ii][ij]=QColor(255,255,0);
             gridT[ii][ij]=0;
             gridC[ii][ij]=QColor(255,255,0);
@@ -289,6 +289,7 @@ void Widget::GetLOLEX(){
 }
 
 //装入蒙版
+//蒙版技术，灵感来源于Adobe Photoshop的图层技术和图层蒙版，可有效分离当前活动的方块和已固定的图形
 void Widget::HereComesMask(){
     for(int x=1;x<=10;x++){
         for(int y=1;y<=20;y++){
@@ -331,6 +332,206 @@ bool Widget::ifSink(){
     }
 
     return false;
+}
+
+//方块抵达终点，蒙版印入主界面
+void Widget::Terminus(){
+    for(int x=LoLeX;x <= LoLeX+exaX-1;x++){
+        for(int y=LoLeY;y >= LoLeY-exaY+1;y--){ //自底向上，否则出错
+            if(maskT[x][y]==1){
+                gridT[x][y] = maskT[x][y];
+                gridC[x][y] = maskC[x][y];
+            }
+        }
+    }
+}
+
+//判断是否游戏结束
+bool Widget::IfGameOver(){
+    int errCount = 0;
+    bool erFlag=false;
+
+    for(int f = 1;f <= 11-exaX;f ++){
+        for(int x = f;x <= f+exaX-1;x++){
+            for(int y=1;y<=exaY;y++){
+                if(gridT[x][y] + exaT[x-f+1][y] == 2){
+                    errCount++;
+                    erFlag=true;
+                    break;
+                }
+            }
+            if(erFlag){
+                erFlag=false;
+                break;
+            }
+        }
+    }
+
+    if(errCount == 11 - exaX) return true;
+    else return false;
+}
+
+//向左移动
+void Widget::LeftMove(){
+    if(LoLeX == 1) return; //已到左边界，不可继续
+    if(ifSink()) return; //已被固定
+    for(int y = LoLeY-exaY+1;y <= LoLeY;y ++){
+        if(maskT[LoLeX][y]+gridT[LoLeX-1][y]==2)
+            return; //左边有位阻，不可继续
+    }
+    for(int y = LoLeY - exaY + 1;y <= LoLeY;y++){
+        for(int x = LoLeX - 1;x <= LoLeX + exaX - 2;x++){
+            maskT[x][y] = maskT[x+1][y];
+            maskC[x][y] = maskC[x+1][y];
+        }
+        maskT[LoLeX + exaX - 1][y]=0;
+    }
+    LoLeX --;
+}
+
+//向右移动
+void Widget::RightMove(){
+    if(LoLeX == 11 - exaX) return; //已到右边界，不可继续
+    if(ifSink()) return; //已被固定
+    for(int y = LoLeY - exaY + 1;y<=LoLeY;y++){
+        if(maskT[LoLeX + exaX - 1][y]+gridT[LoLeX + exaX][y]==2)
+            return; //右边有位阻，不可继续
+    }
+    for(int y = LoLeY - exaY + 1;y <= LoLeY;y++){
+        for(int x = LoLeX + exaX;x >= LoLeX + 1;x--){
+            maskT[x][y] = maskT[x-1][y];
+            maskC[x][y] = maskC[x-1][y];
+        }
+        maskT[LoLeX][y]=0;
+    }
+    LoLeX ++;
+}
+
+//顺时针旋转，第i行变为第n-i+1列，第j列变为第j行
+void Widget::SingleClockwise(){
+    if(LoLeY < exaX || 11 - LoLeX < exaY) return; //旋转后将出界，不可继续
+    if(ifSink()) return; //已被固定
+    for(int chkX = 1 ;chkX <= exaX;chkX++){
+        for(int chkY = 1 ;chkY<= exaY;chkY++){
+            if(maskT[LoLeX + chkX - 1][ LoLeY - chkY + 1]+gridT[LoLeX + chkY - 1][LoLeY - exaX + chkX]==2)
+                return; //周围有位阻，不可继续
+        }
+    }
+
+    //旋转
+    for(int x=1;x<=4;x++){
+        for(int y=1;y<=4;y++){
+            medT[5-y][x]=anT[x][y];
+            medC[5-y][x]=anC[x][y];
+        }
+    }
+    for(int x=1;x<=4;x++){
+        for(int y=1;y<=4;y++){
+            anT[x][y]=medT[x][y];
+            anC[x][y]=medC[x][y];
+        }
+    }
+
+    ConfirmEdge(); //裁切边界
+
+    //换蒙版
+    for(int x=1;x<=10;x++){
+        for(int y=1;y<=20;y++){
+            maskT[x][y]=0; //先清空
+        }
+    }
+    for(int x = LoLeX;x <= LoLeX + exaX - 1;x++){
+        for(int y = LoLeY - exaY + 1;y <= LoLeY;y++){
+            maskT[x][y] = exaT[x - LoLeX + 1][y - LoLeY + exaY];
+            maskC[x][y] = exaC[x - LoLeX + 1][y - LoLeY + exaY];
+        }
+    }
+
+}
+
+//逆时针旋转，第n-i+1列变为第i行，第j行变为第j列
+void Widget::SingleCounter(){
+    if(LoLeY < exaX || 11 - LoLeX < exaY) return; //旋转后将出界，不可继续
+    if(ifSink()) return; //已被固定
+
+    for(int chkX = 1 ;chkX <= exaX;chkX++){
+        for(int chkY = 1;chkY <= exaY;chkY++){
+            if(maskT[LoLeX + chkX - 1][LoLeY - chkY + 1]+gridT[LoLeX + exaY - chkY][LoLeY - chkX + 1]==2)
+                return; //周围有位阻，不可继续
+        }
+    }
+
+    //旋转
+    for(int x=1;x<=4;x++){
+        for(int y=1;y<=4;y++){
+            medT[y][x] = anT[5-x][y];
+            medC[y][x] = anC[5-x][y];
+        }
+    }
+    for(int x=1;x<=4;x++){
+        for(int y=1;y<=4;y++){
+            anT[x][y] = medT[x][y];
+            anC[x][y] = medC[x][y];
+        }
+    }
+
+    ConfirmEdge(); //裁切边界
+
+    //换蒙版
+    for(int x=1;x<=10;x++){
+        for(int y=1;y<=20;y++){
+            maskT[x][y]=0; //先清空
+        }
+    }
+    for(int x = LoLeX;x <= LoLeX + exaX - 1;x++){
+        for(int y = LoLeY - exaY + 1;y <= LoLeY;y++){
+            maskT[x][y] = exaT[x - LoLeX + 1][y - LoLeY + exaY];
+            maskC[x][y] = exaC[x - LoLeX + 1][y - LoLeY + exaY];
+        }
+    }
+
+}
+
+//消除被填满的行
+void Widget::EliminateRow(){
+    RowsEliminated = 0;
+    bool fullRow=false;
+    int sumRow=0,targetRow;
+
+    do{
+        fullRow=false;sumRow = 0;
+        for(int y = 1 ;y <= 20;y++){
+            for(int x = 1;x <= 10;x++){
+                sumRow += gridT[x][y];
+            }
+            if(sumRow == 10){
+                targetRow = y;
+                fullRow = true;
+                break;
+            }
+            sumRow = 0;
+        }
+
+        if(fullRow){
+            if(targetRow>1){
+                for(int x=1;x<=10;x++){
+                    for(int y=targetRow;y >= 2;y--){
+                        gridT[x][y] = gridT[x][y-1];
+                        gridC[x][y] = gridC[x][y-1];
+                    }
+                    gridT[x][1]=0;
+                }
+            }
+            else if(targetRow == 1){
+                for(int x=1;x<=10;x++){
+                    gridT[x][1] = 0;
+                }
+            }
+            RowsEliminated ++;
+        }
+
+    }while(fullRow);
+
 }
 
 Widget::~Widget()
