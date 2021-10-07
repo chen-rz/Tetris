@@ -1,10 +1,14 @@
 #include "widget.h"
-#include "settings.h"
 #include "ui_widget.h"
+#include "settings.h"
 
+#include <iostream>
+#include <ctime>
 #include <QTimer>
 #include <QPainter>
-#include <ctime>
+#include <QFile>
+#include <QTextStream>
+#include <QMessageBox>
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
@@ -33,6 +37,58 @@ Widget::Widget(QWidget *parent) :
             gridC[ii][ij]=QColor(255,255,0);
         }
     }
+
+    //参数初始化
+    ifInitial = true;
+    vIndex = 1;
+
+
+    //读取配置信息：
+    //旋转方向
+    QFile rotFile("../Tetris/config/rotation.txt");
+    rotFile.open(QIODevice::ReadOnly);
+    QTextStream rotIn(&rotFile);
+    rotIn >> xRot;
+    rotFile.close();
+    std::cout<<"xRot = "<<xRot<<'\n';
+
+    //加速下落时的速度
+    QFile accFile("../Tetris/config/acceleration.txt");
+    accFile.open(QIODevice::ReadOnly);
+    QTextStream accIn(&accFile);
+    accIn >> xAcc;
+    accFile.close();
+    std::cout<<"xAcc = "<<xAcc<<'\n';
+
+    //显示即将出现的方块
+    QFile upcFile("../Tetris/config/upcoming.txt");
+    upcFile.open(QIODevice::ReadOnly);
+    QTextStream upcIn(&upcFile);
+    upcIn >> xNext;
+    upcFile.close();
+    std::cout<<"xNext = "<<xNext<<'\n';
+
+    //按键组合
+    QFile keyFile("../Tetris/config/keysettings.txt");
+    keyFile.open(QIODevice::ReadOnly);
+    QTextStream keyIn(&keyFile);
+    keyIn >> xKey;
+    keyFile.close();
+    std::cout<<"xKey = "<<xKey<<'\n';
+
+    //显示历史最高分：
+    QFile bestFile("../Tetris/config/best_in_history.txt");
+    bestFile.open(QIODevice::ReadOnly);
+    QTextStream bestIn(&bestFile);
+    int tmp_best;
+    bestIn >> tmp_best;
+    bestFile.close();
+    ui->txthistory->setText(QString::number(tmp_best));
+
+
+    QMessageBox::information(NULL,"Tetris","★  欢迎！\n\n▲  运行此程序时，须使用英文输入法！\n\n默认按键组合为：\n← →    左右移动方块\n    ↑      旋转方块\n    ↓      加速/减速下落\n\n默认旋转方向：顺时针方向\n▲  沿任意方向旋转方块时，方块右侧和上方均须有充足的空间！\n\n点击“设置”按钮可更改设置选项\n点击“开始”按钮或按Enter键开始");
+
+
 
     QTimer* Timer0=new QTimer(this);
     Timer0->start(1000);
@@ -87,11 +143,13 @@ void Widget::paintEvent(QPaintEvent *){
     }
 
     //小窗口
-    for(x=1;x<=4;x++){
-        for(y=1;y<=4;y++){
-            if(dispT[x][y]==1){
-                painter.setBrush(dispC[x][y]);
-                painter.drawRect(345 + 25 * (x - 1), 50 + 25 * (y - 1), 25, 25);
+    if(xNext==1){ //选择显示
+        for(x=1;x<=4;x++){
+            for(y=1;y<=4;y++){
+                if(dispT[x][y]==1){
+                    painter.setBrush(dispC[x][y]);
+                    painter.drawRect(345 + 25 * (x - 1), 50 + 25 * (y - 1), 25, 25);
+                }
             }
         }
     }

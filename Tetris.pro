@@ -35,3 +35,5 @@ HEADERS += \
 FORMS += \
         widget.ui \
     settings.ui
+
+RC_ICONS = tetrisIcon_ICO.ico
