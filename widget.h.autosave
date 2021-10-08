@@ -49,7 +49,7 @@ public slots:
     void Timer0_Timer();
     void TimerImage_Timer();
     void paintEvent(QPaintEvent*);
-
+    void keyPressEvent(QKeyEvent*);
 
 private:
     Ui::Widget *ui;

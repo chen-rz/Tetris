@@ -6,6 +6,7 @@
 #include <cmath>
 #include <QTimer>
 #include <QPainter>
+#include <QKeyEvent>
 #include <QFile>
 #include <QTextStream>
 #include <QMessageBox>
@@ -186,6 +187,25 @@ void Widget::showSettings(){
     stui = new Settings();
     stui->setModal(true);
     stui->show();
+}
+
+void Widget::keyPressEvent(QKeyEvent *e){
+    switch (e->key()) {
+    case Qt::Key_Enter:
+        startButton_click();
+        break;
+        
+    case
+        
+    case Qt::Key_W:
+        if(xKey == 2){
+            
+        }
+        break;
+        
+    default:
+        break;
+    }
 }
 
 void Widget::Timer0_Timer(){
