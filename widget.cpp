@@ -6,6 +6,7 @@
 #include <cmath>
 #include <QTimer>
 #include <QPainter>
+#include <QKeyEvent>
 #include <QFile>
 #include <QTextStream>
 #include <QMessageBox>
@@ -94,12 +95,11 @@ Widget::Widget(QWidget *parent) :
     QFile bestFile("../Tetris/config/best_in_history.txt");
     bestFile.open(QIODevice::ReadOnly);
     QTextStream bestIn(&bestFile);
-    int tmp_best;
-    bestIn >> tmp_best;
+    bestIn >> historyScore;
     bestFile.close();
-    ui->txthistory->setText(QString::number(tmp_best));
+    ui->txthistory->setText(QString::number(historyScore));
 
-    QMessageBox::information(NULL,"Tetris","★  欢迎！\n\n▲  运行此程序时，须使用英文输入法！\n\n默认按键组合为：\n← →    左右移动方块\n    ↑      旋转方块\n    ↓      加速/减速下落\n\n默认旋转方向：顺时针方向\n▲  沿任意方向旋转方块时，方块右侧和上方均须有充足的空间！\n\n点击“设置”按钮可更改设置选项\n点击“开始”按钮或按Enter键开始");
+    QMessageBox::information(NULL,"Tetris","★  欢迎！\n\n默认按键组合为：\n← →    左右移动方块\n    ↑      旋转方块\n    ↓      加速/减速下落\n\n默认旋转方向：顺时针方向\n▲  沿任意方向旋转方块时，方块右侧和上方均须有充足的空间！\n\n点击“设置”按钮可更改设置选项\n点击“开始”按钮开始游戏");
 
 
     Timer0=new QTimer(this);
@@ -113,6 +113,7 @@ Widget::Widget(QWidget *parent) :
     connect(ui->cmdstart,&QPushButton::clicked,this,&Widget::startButton_click);
     connect(ui->settings,&QPushButton::clicked,this,&Widget::showSettings);
 
+    this->setFocus();
 }
 
 void Widget::startButton_click(){
@@ -188,6 +189,91 @@ void Widget::showSettings(){
     stui->show();
 }
 
+void Widget::keyPressEvent(QKeyEvent *e){
+    switch (e->key()) {
+
+    case Qt::Key_Down:
+        if(xKey==1 && ifStart){
+            if(! ifFast){
+                ifFast = true;
+                Timer0->setInterval((1000 / xAcc) * vIndex);
+            }
+            else{
+                ifFast = false;
+                Timer0->setInterval(1000 * vIndex);
+            }
+        }
+        break;
+
+    case Qt::Key_S:
+        if(xKey == 2 && ifStart){
+            if(! ifFast){
+                ifFast = true;
+                Timer0->setInterval((1000 / xAcc) * vIndex);
+            }
+            else{
+                ifFast = false;
+                Timer0->setInterval(1000 * vIndex);
+            }
+        }
+        break;
+
+    case Qt::Key_Left:
+        if(xKey==1 && ifStart){
+            Timer0->stop(); //先关停Timer，防止意外事故
+            LeftMove();
+            Timer0->start();
+        }
+        break;
+
+    case Qt::Key_A:
+        if(xKey==2 && ifStart){
+            Timer0->stop(); //先关停Timer，防止意外事故
+            LeftMove();
+            Timer0->start();
+        }
+        break;
+
+    case Qt::Key_Right:
+        if(xKey==1 && ifStart){
+            Timer0->stop(); //先关停Timer，防止意外事故
+            RightMove();
+            Timer0->start();
+        }
+        break;
+
+    case Qt::Key_D:
+        if(xKey==2 && ifStart){
+            Timer0->stop(); //先关停Timer，防止意外事故
+            RightMove();
+            Timer0->start();
+        }
+        break;
+
+    case Qt::Key_Up:
+        if(xKey==1 && ifStart){
+            Timer0->stop();
+            if(xRot == 1) SingleClockwise();
+            else SingleCounter();
+            Timer0->start();
+        }
+        break;
+
+    case Qt::Key_W:
+        if(xKey==2 && ifStart){
+            Timer0->stop();
+            if(xRot == 1) SingleClockwise();
+            else SingleCounter();
+            Timer0->start();
+        }
+        break;
+
+    default:
+        break;
+
+    }
+}
+
 void Widget::Timer0_Timer(){
 
     if(ifInitial == false){ //非初始状态
@@ -201,7 +287,7 @@ void Widget::Timer0_Timer(){
 
             EliminateRow(); //消除被填满的行
 
-            nowScore += RowsEliminated * pow(2, RowsEliminated); //计分，pow幂运算函数
+            nowScore += RowsEliminated * pow(2, RowsEliminated) + RowsEliminated; //计分，pow幂运算函数
             ui->txtcurrent->setText(QString::number(nowScore));
 
             if(nowScore > historyScore){
@@ -209,8 +295,8 @@ void Widget::Timer0_Timer(){
                 ui->txthistory->setText(QString::number(historyScore));
             }
 
-            if(nowScore >= 2000){
-                vIndex = pow(0.9, int(nowScore / 2000)); //调节速度
+            if(nowScore >= 50){
+                vIndex = pow(0.9, int(nowScore / 50)); //调节速度
             }
 
             if(ifFast == true){
@@ -233,7 +319,7 @@ void Widget::Timer0_Timer(){
 
                 Timer0->stop();
 
-                QMessageBox::information(NULL, "Tetris", "游戏结束！\n\n本次得分："+QString::number(nowScore)+"\n历史最高分："+QString::number(historyScore)+"\n\n点击“开始”按钮或按Enter键重新开始");
+                QMessageBox::information(NULL, "Tetris", "游戏结束！\n\n本次得分："+QString::number(nowScore)+"\n历史最高分："+QString::number(historyScore)+"\n\n点击“开始”按钮重新开始游戏");
             }
             else{
                 GetLOLEX();
@@ -272,7 +358,7 @@ void Widget::Timer0_Timer(){
 
 
 void Widget::TimerImage_Timer(){
-    ui->txtspeed->setText(QString::number((float)1000/50/20));
+    ui->txtspeed->setText(QString::number((float)1000/Timer0->interval()));
     this->repaint();
 }
 
@@ -488,7 +574,6 @@ void Widget::ConfirmEdge(){
 
 //随机生成方块下落的列坐标
 int Widget::GetStartColumn(int SqrWidth){
-    qsrand(time(NULL));
     return (qrand() % (11 - SqrWidth)) + 1;
     //以11减去实际宽度，防止出界
 }
@@ -498,6 +583,7 @@ void Widget::GetLOLEX(){
     bool isBlocked = false;
     do{
         LoLeX = GetStartColumn(exaX);
+        isBlocked = false;
         for(int x = LoLeX;x <= LoLeX+exaX-1;x ++){
             for(int y = 1;y <= exaY;y ++){
                 //向当前堆积高度较低的位置投放新方块，防止“落地成盒”
@@ -506,6 +592,7 @@ void Widget::GetLOLEX(){
                     break;
                 }
             }
+            if(isBlocked) break;
         }
     }while(isBlocked);
 }
@@ -576,7 +663,9 @@ bool Widget::IfGameOver(){
     int errCount = 0;
     bool erFlag=false;
 
+    //Lower left X (LoLeX)可以取1~11-exaX，若全都不行则游戏结束
     for(int f = 1;f <= 11-exaX;f ++){
+        erFlag=false;
         for(int x = f;x <= f+exaX-1;x++){
             for(int y=1;y<=exaY;y++){
                 if(gridT[x][y] + exaT[x-f+1][y] == 2){
@@ -585,10 +674,7 @@ bool Widget::IfGameOver(){
                     break;
                 }
             }
-            if(erFlag){
-                erFlag=false;
-                break;
-            }
+            if(erFlag) break;
         }
     }
 

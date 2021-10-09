@@ -22,8 +22,11 @@
     <height>610</height>
    </size>
   </property>
+  <property name="focusPolicy">
+   <enum>Qt::StrongFocus</enum>
+  </property>
   <property name="windowTitle">
-   <string>Tetris</string>
+   <string>俄罗斯方块</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -201,7 +204,7 @@
    <property name="geometry">
     <rect>
      <x>320</x>
-     <y>280</y>
+     <y>290</y>
      <width>151</width>
      <height>81</height>
     </rect>
@@ -281,7 +284,7 @@
    <property name="geometry">
     <rect>
      <x>320</x>
-     <y>370</y>
+     <y>380</y>
      <width>151</width>
      <height>81</height>
     </rect>
@@ -360,7 +363,7 @@
   <widget class="QPushButton" name="cmdstart">
    <property name="geometry">
     <rect>
-     <x>350</x>
+     <x>380</x>
      <y>540</y>
      <width>91</width>
      <height>41</height>
@@ -374,6 +377,9 @@
      <bold>true</bold>
     </font>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::TabFocus</enum>
+   </property>
    <property name="text">
     <string>开始</string>
    </property>
@@ -381,7 +387,7 @@
   <widget class="QPushButton" name="settings">
    <property name="geometry">
     <rect>
-     <x>350</x>
+     <x>380</x>
      <y>490</y>
      <width>91</width>
      <height>31</height>
@@ -394,6 +400,9 @@
      <weight>50</weight>
      <bold>false</bold>
     </font>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::TabFocus</enum>
    </property>
    <property name="text">
     <string>设置</string>

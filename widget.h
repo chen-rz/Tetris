@@ -49,7 +49,7 @@ public slots:
     void Timer0_Timer();
     void TimerImage_Timer();
     void paintEvent(QPaintEvent*);
-
+    void keyPressEvent(QKeyEvent*);
 
 private:
     Ui::Widget *ui;
@@ -65,7 +65,7 @@ private:
     bool ifSetout; //前一个方块是否出发
     bool ifDisplay; //是否已展示下一个方块
 
-    double vIndex; //速度值参数，得分每增加2000分，vIndex打九折
+    double vIndex; //速度值参数，得分每增加50分，vIndex打九折
     int historyScore; //历史最高分
     int nowScore; //当前得分
 
